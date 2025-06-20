@@ -8,6 +8,7 @@ package socket
 
 import (
 	"net"
+	"syscall"
 )
 
 func (c *Conn) recvMsgs(ms []Message, flags int) (int, error) {
@@ -17,7 +18,7 @@ func (c *Conn) recvMsgs(ms []Message, flags int) (int, error) {
 	tmps := defaultMmsgTmpsPool.Get()
 	defer defaultMmsgTmpsPool.Put(tmps)
 	var parseFn func([]byte, string) (net.Addr, error)
-	if c.network != "tcp" {
+	if c.network != "tcp" && (flags & syscall.MSG_ERRQUEUE) != syscall.MSG_ERRQUEUE {
 		parseFn = parseInetAddr
 	}
 	hs := tmps.packer.pack(ms, parseFn, nil)
